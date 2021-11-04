@@ -7,6 +7,8 @@
 
 using namespace eosio;
 
+// ONLY_BILL_FIRST_AUTHORIZER - CPU cost moze biti pokriven od strane apl devova potpisom prve akcije u transakciji, tj. pravljenjem dummy akcije pre transfer akcije npr
+
 CONTRACT hodl : public eosio::contract
 {
     private:
@@ -102,7 +104,7 @@ CONTRACT hodl : public eosio::contract
             // provera da je hodler u tabeli
             check(hodl_it != balance.end(), "Ne mozes da sedis sa nama");
 
-            action(
+            action( //inline akcija, _n je name macro
                 permission_level{get_self(), "active"_n},
                 "eosio.token"_n,
                 "transfer"_n,
