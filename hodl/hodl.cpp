@@ -135,17 +135,48 @@ CONTRACT hodl : public eosio::contract
                 return -1;
         }
 
+        // binary_extension akcija
         ACTION addnewrow (eosio::name olditem, eosio::binary_extension<eosio::name> newitem) // da bi radilo, newitem se mora wrappovati u eosio::binary_extension
         {
             needs_update _needsupdate(get_self(), olditem.value);
             _needsupdate.emplace(get_self(), [&](auto& row){
                 row.olditem = olditem;
                 if (newitem){
-                    row.newitem = newitem.value();
+                    row.newitem = newitem.value(); // ovde mora value, jer je wrapovano u binary_extension, ako nije .value, bacace error. Da nije binary_ext, bio bi samo newitem
                 }
                 else {
                     row.newitem = name("nullfill");
                 }
             });
         }
+
+        // struktura za parametre akcije - organizovanje parametara akcije u jedan
+        struct message_struct {
+            name sender;
+            name recipient;
+            std::string message;
+        };
+
+        // akcija koja kao jedan parametar uzima strukturu koja sadrzi vise razlicitih parametara - kada se poziva u cleos-u, struct se moze proslediti direktno kroz JSON notaciju
+        // medjutim, ako se ovako radi, i ako se zaboravi jedan parametar strukture, bacice error i obavestenje da fali parametar iz strukture
+        ACTION sendmessage(message_struct payload){
+            require_auth(payload.sender); // uzimanje odredjenog parametra iz strukture
+            eosio::print(payload.message);
+        }
+
+        // primer packa i unpacka, medjutim scheduler nije ubacen pa je ovde samo kao podsetnik da moze ovako
+
+        /*
+        // medjutim, ako treba da se sve serijalizuje u jedno pakovanje, onda se koriste eosio::pack i eosio::unpack
+        ACTION schedulemsg(message_struct payload){
+            std::vector<char> rawMessage = eosio::pack<message_struct>(payload); //spakovana verzija strukture payload
+            schedule_timer(get_self(), rawMessage, 2); // npr ovo je uradjeno da bi se iskoristio schedule_timer koji bi uzeo samo rawMessage argument, a ne vise razlicitih
+        }
+
+        // timer_callback se poziva kada timer u schedule_timer opali
+        // ovde se poruka unpackuje preko eosio::unpack
+        bool timer_callback(name timer, std::vector<char> payload, uint32_t secs){
+            auto payload = eosio::unpack<message_struct>(rawMessage);
+        }*/
+
 };
