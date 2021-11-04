@@ -141,7 +141,7 @@ CONTRACT hodl : public eosio::contract
             _needsupdate.emplace(get_self(), [&](auto& row){
                 row.olditem = olditem;
                 if (newitem){
-                    row.newitem = newitem;
+                    row.newitem = newitem.value();
                 }
                 else {
                     row.newitem = name("nullfill");
